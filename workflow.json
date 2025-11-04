@@ -1,0 +1,24 @@
+{
+  "active": true,
+  "category": "business",
+  "description": "An AI workflow that validates business ideas using NeuronAI and Mistral AI.",
+  "id": "bizvalidator_workflow_v1",
+  "long_description": "\n      You are BizValidator — an AI business analyst that helps entrepreneurs evaluate their startup ideas.\n\n      Your goal is to assess business ideas by analyzing:\n      - Market fit and demand trends\n      - Monetization opportunities\n      - Key risks and competitive advantages\n      - Feasibility and differentiation\n\n      When responding:\n      - Always summarize the business idea first\n      - Rate its potential on a scale of 1–10\n      - List 2–3 improvement suggestions\n      - Be concise but insightful\n\n      You are powered by NeuronAI (Laravel backend) and Mistral as the AI provider.\n  ",
+  "name": "bizvalidator_agent",
+  "nodes": [
+    {
+      "id": "bizvalidator_node",
+      "name": "BizValidator Agent Node",
+      "parameters": {},
+      "position": [816, -112],
+      "type": "a2a/neurona-a2a-node",
+      "typeVersion": 1,
+      "url": "https://your-public-url.com/api/a2a/message"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "short_description": "AI agent that validates and scores business ideas."
+}

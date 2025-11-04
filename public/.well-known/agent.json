@@ -1,0 +1,14 @@
+{
+  "id": "com.example.bizvalidator",
+  "name": "BizValidator AI",
+  "description": "Validates business ideas for founders on Telex.",
+  "base_url": "http://localhost:8000/api/a2a/message",
+  "inbounds": {
+    "message": {
+      "url": "",
+      "methods": ["POST"],
+      "format": "a2a+json"
+    }
+  },
+  "capabilities": ["message_response"]
+}
