@@ -1,59 +1,253 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🚀 BizValidator – Startup Idea Validation using Google Gemini
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+BizValidator is a Laravel-based service that uses **Google Gemini AI** to analyze and validate startup ideas.  
+It generates structured feedback on your idea's market fit, monetization strategies, risks, and more.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🧠 Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- ✅ Integration with **Google Gemini 2.5 Flash** model  
+- 🧩 Produces a structured business analysis:
+  1. Summary  
+  2. Market Fit  
+  3. Target Audience  
+  4. Monetization Options  
+  5. Competitive Advantage  
+  6. Potential Risks  
+  7. Validation Score (0–10)  
+  8. Verdict (Proceed, Pivot, Drop)
+- ⚙️ Simple Laravel service architecture  
+- 🔒 Secure `.env` configuration  
+- ⏱️ Includes timeout and detailed error handling  
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## ⚙️ Installation & Setup
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 1. Clone or Add to Your Laravel Project
+```bash
+git clone https://github.com/yourusername/IdeaValidator.git
+cd IdeaValidator
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2. Install Dependencies
+```bash
+composer install
+```
 
-## Laravel Sponsors
+### 3. Configure the Gemini API Key
+Open your `.env` file and add:
+```env
+GEMINI_API_KEY=your_google_gemini_api_key_here
+```
+You can create your key from [Google AI Studio](https://aistudio.google.com/app/apikey).
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 4. Update `config/services.php`
+Ensure the file includes:
+```php
+'gemini' => [
+    'api_key' => env('GEMINI_API_KEY'),
+],
+```
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## 🧩 Usage Example
 
-## Contributing
+### BizValidatorService.php
+```php
+<?php
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+namespace App\Services;
 
-## Code of Conduct
+use Illuminate\Support\Facades\Http;
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+class BizValidatorService
+{
+    public function validateIdea(string $idea): string
+    {
+        $prompt = "
+You are BizValidator, an expert startup analyst.
+Analyse this business idea and output a structured validation:
+1. Summary
+2. Market Fit
+3. Target Audience
+4. Monetization Options
+5. Competitive Advantage
+6. Potential Risks
+7. Validation Score (0-10)
+8. Verdict: Proceed, Pivot, or Drop.
 
-## Security Vulnerabilities
+Business Idea: {$idea}
+";
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
-## License
+        $response = Http::timeout(60)
+            ->withHeaders(['Content-Type' => 'application/json'])
+            ->post($url . '?key=' . config('services.gemini.api_key'), [
+                'contents' => [
+                    [
+                        'parts' => [['text' => $prompt]]
+                    ]
+                ]
+            ]);
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+        $json = $response->json();
+
+        if (isset($json['candidates'][0]['content']['parts'][0]['text'])) {
+            return $json['candidates'][0]['content']['parts'][0]['text'];
+        }
+
+        if (isset($json['error']['message'])) {
+            return 'Gemini API Error: ' . $json['error']['message'];
+        }
+
+        return 'Unable to validate idea at this time.';
+    }
+}
+```
+
+---
+
+## 🧭 Controller Example
+```php
+use App\Services\BizValidatorService;
+use Illuminate\Http\Request;
+
+class IdeaController extends Controller
+{
+    protected $validator;
+
+    public function __construct(BizValidatorService $validator)
+    {
+        $this->validator = $validator;
+    }
+
+    public function validate(Request $request)
+    {
+        $idea = $request->input('idea');
+        $result = $this->validator->validateIdea($idea);
+
+        return response()->json(['validation' => $result]);
+    }
+}
+```
+
+### Example Route
+```php
+use App\Http\Controllers\IdeaController;
+
+Route::post('/validate-idea', [IdeaController::class, 'validate']);
+```
+
+---
+
+## 🧪 Test It
+
+Run your local Laravel server:
+```bash
+php artisan serve
+```
+
+Then test via cURL:
+```bash
+curl -X POST http://localhost:8000/validate-idea      -H "Content-Type: application/json"      -d '{"idea": "AI-driven fitness app for seniors"}'
+```
+
+Example output:
+```json
+{
+  "validation": "1. Summary: An AI-powered fitness app designed for seniors...
+  2. Market Fit: Strong demand for health tech...
+  ...
+  8. Verdict: Proceed."
+}
+```
+
+Or test from Tinker:
+```bash
+php artisan tinker
+>>> app(\App\Services\BizValidatorService::class)->validateIdea('Smart composting IoT device')
+```
+
+---
+
+## 🧰 Troubleshooting
+
+### ❌ cURL Error 28 (Timeout)
+Your local environment can’t reach Google’s API.  
+Fixes:
+- Check your network/firewall settings  
+- Ensure `curl` and `openssl` are enabled in PHP  
+- On Windows (XAMPP), configure SSL certificates:  
+  1. Download `cacert.pem` from https://curl.se/ca/cacert.pem  
+  2. Save to `C:\xampp\php\extras\ssl\cacert.pem`  
+  3. Add to `php.ini`:
+     ```ini
+     curl.cainfo = "C:\xampp\php\extras\ssl\cacert.pem"
+     openssl.cafile = "C:\xampp\php\extras\ssl\cacert.pem"
+     ```
+  4. Restart Apache.
+
+### ❌ Invalid Model Name
+Ensure your endpoint is correct:
+```
+https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+```
+
+### ❌ "Unable to validate idea at this time."
+Enable logging in Laravel:
+```php
+\Log::info('Gemini response', $response->json());
+```
+
+---
+
+## 🔐 Security Tips
+
+- Never commit your API key to Git.  
+- Always load secrets via `.env`.  
+- Rotate API keys periodically in Google Cloud Console.
+
+---
+
+## 🧱 Example Prompt Used
+
+```
+You are BizValidator, an expert startup analyst.
+Analyse this business idea and output a structured validation:
+1. Summary
+2. Market Fit
+3. Target Audience
+4. Monetization Options
+5. Competitive Advantage
+6. Potential Risks
+7. Validation Score (0-10)
+8. Verdict: Proceed, Pivot, or Drop.
+
+Business Idea: {user input}
+```
+
+---
+
+## 🚧 Future Improvements
+
+- Add streaming response support (real-time validation)
+- Store validation results in database
+- Create a web UI with interactive analysis
+- Use Gemini Pro for deeper business reasoning
+
+---
+
+## 🧾 License
+
+**MIT License** © 2025 — Developed by *Oluwadamilola*
+
+---
+
+## ❤️ Contributing
+
+Pull requests are welcome!  
+If you encounter issues or have improvement ideas, open an issue or PR on GitHub.
