@@ -27,9 +27,9 @@ class Agent extends Command
      */
     public function handle()
     {
-        $response = ValidatorAgent::make()->chat(
-            new UserMessage("Hi who are you?")
-        );
-        echo $response->getContent();
+        // $response = ValidatorAgent::make()->chat(
+        //     new UserMessage("Hi who are you?")
+        // );
+        // echo $response->getContent();
     }
 }
