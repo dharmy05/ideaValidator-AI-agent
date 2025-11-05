@@ -9,13 +9,25 @@ class A2AController extends Controller
     public function handle(Request $req, BizValidatorService $agent)
     {
         $payload = $req->json()->all();
-        $userMsg = $payload['content']['text'] ?? '';
+        $id = $payload['id'] ?? uniqid();
+        $text = $payload['params']['message']['parts'][0]['text'] ?? '';
 
-        $response = $agent->validateIdea($userMsg);
+        $replyText = $agent->validateIdea($text);
 
         return response()->json([
-            'type' => 'response',
-            'content' => [ 'text' => $response ]
+            'jsonrpc' => '2.0',
+            'id' => $id,
+            'result' => [
+                'message' => [
+                    'role' => 'agent',
+                    'parts' => [
+                        [
+                            'kind' => 'text',
+                            'text' => $replyText
+                        ]
+                    ]
+                ]
+            ]
         ]);
     }
 }
