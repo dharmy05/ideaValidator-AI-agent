@@ -31,3 +31,4 @@ class A2AController extends Controller
         ]);
     }
 }
+
